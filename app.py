@@ -7,6 +7,7 @@
 import datetime
 import json
 import queue
+import sys
 import threading
 import tkinter as tk
 from pathlib import Path
@@ -17,7 +18,12 @@ import polisher
 from glm_client import GLMClient, GLMError
 from wp_client import WonderPenClient, WonderPenError
 
-HERE = Path(__file__).resolve().parent
+APP_VERSION = "1.4"
+
+if getattr(sys, "frozen", False):  # PyInstaller 打包后：配置放在 exe 旁边（解压临时目录会丢）
+    HERE = Path(sys.executable).resolve().parent
+else:
+    HERE = Path(__file__).resolve().parent
 CONFIG_FILE = HERE / "config.json"
 
 DEFAULT_CONFIG = {
@@ -33,7 +39,7 @@ TEXT_FONT = ("Microsoft YaHei UI", 11)
 class App:
     def __init__(self, root: tk.Tk):
         self.root = root
-        root.title("妙笔散文日记")
+        root.title(f"妙笔散文日记 v{APP_VERSION}")
         root.geometry("1020x680")
         root.minsize(860, 560)
 
