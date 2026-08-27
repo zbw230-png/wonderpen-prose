@@ -30,13 +30,20 @@ class GLMClient:
 
     def chat(self, system: str, user: str, temperature: float = 0.7, max_tokens: int = 8192) -> str:
         """发送一次对话补全，返回模型生成的文本。"""
+        messages = [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ]
+        return self.chat_messages(messages, temperature=temperature, max_tokens=max_tokens)
+
+    def chat_messages(
+        self, messages: list[dict], temperature: float = 0.7, max_tokens: int = 8192
+    ) -> str:
+        """多轮对话补全：messages 为 [{"role": ..., "content": ...}, ...]。"""
         payload = json.dumps(
             {
                 "model": self._model,
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                ],
+                "messages": messages,
                 "temperature": temperature,
                 "max_tokens": max_tokens,
             }

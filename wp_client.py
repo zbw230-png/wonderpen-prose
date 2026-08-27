@@ -131,6 +131,32 @@ class WonderPenClient:
             return data
         raise WonderPenError("create_item 返回结构异常")
 
+    def update_item(
+        self,
+        item_id: str,
+        content: str,
+        fmt: str = "markdown",
+        title: str = None,
+        lib_key: str = None,
+    ) -> dict:
+        """更新文档内容（可选改标题）。对话导出、批注追加都靠它。"""
+        args = {"itemId": item_id, "content": content, "format": fmt}
+        if title:
+            args["title"] = title
+        if lib_key:
+            args["libKey"] = lib_key
+        data = self._call("update_item", args)
+        if isinstance(data, dict):
+            return data
+        raise WonderPenError("update_item 返回结构异常")
+
+    def get_editor_state(self) -> dict:
+        """当前编辑器状态：打开的文档、光标位置、选中的文字。"""
+        data = self._call("get_editor_state", {})
+        if isinstance(data, dict):
+            return data
+        raise WonderPenError("get_editor_state 返回结构异常")
+
     def trash_item(self, item_id: str, lib_key: str = None) -> dict:
         """把文档移入回收站（软删除，可恢复）。"""
         args = {"itemId": item_id}
