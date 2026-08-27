@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<title>散文日记 · 随笔梳理</title>
+<style>
+  :root {
+    --paper: #f5f0e6;
+    --card: #fffdf8;
+    --ink: #33302a;
+    --muted: #8d8577;
+    --accent: #5d5040;
+    --accent-light: #8a7a5f;
+    --line: #e6ddca;
+    --err: #a8442a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 16px 48px;
+  }
+  header {
+    text-align: center;
+    padding: 28px 0 6px;
+  }
+  header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.35em;
+    text-indent: 0.35em;
+    color: var(--accent);
+  }
+  header .sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.1em;
+  }
+  header .rule {
+    width: 36px; height: 1px;
+    background: var(--accent-light);
+    margin: 14px auto 0;
+    position: relative;
+  }
+  header .rule::after {
+    content: "";
+    position: absolute;
+    left: 50%; top: -2px;
+    width: 5px; height: 5px;
+    transform: translateX(-50%) rotate(45deg);
+    background: var(--accent-light);
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 18px;
+    box-shadow: 0 1px 3px rgba(93, 80, 64, 0.06);
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .row label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+  .row .meta { font-size: 12px; color: var(--muted); }
+  textarea {
+    width: 100%;
+    min-height: 180px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fdfaf3;
+    padding: 12px;
+    font-size: 16px;
+    font-family: inherit;
+    line-height: 1.7;
+    color: var(--ink);
+    resize: vertical;
+    -webkit-appearance: none;
+  }
+  textarea:focus { outline: none; border-color: var(--accent-light); }
+  .passcode-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .passcode-row label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .passcode-row input {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 15px;
+    background: #fdfaf3;
+  }
+  .passcode-row input:focus { outline: none; border-color: var(--accent-light); }
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  button {
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    padding: 11px 18px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  button:active { opacity: 0.75; }
+  button:disabled { opacity: 0.45; cursor: default; }
+  button.primary {
+    flex: 1;
+    background: var(--accent);
+    color: #f7f2e8;
+    letter-spacing: 0.12em;
+  }
+  button.ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  button.mini {
+    background: transparent;
+    color: var(--accent-light);
+    font-size: 12px;
+    padding: 3px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+  }
+  .title-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: #f4eddd;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--accent);
+  }
+  .title-line .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  article {
+    font-family: "Noto Serif SC", "Songti SC", STSong, SimSun, serif;
+    font-size: 17px;
+    line-height: 1.95;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  article p { margin-bottom: 1em; }
+  article p:last-child { margin-bottom: 0; }
+  article .img-ref {
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--muted);
+    background: #f4eddd;
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+  article .caret {
+    display: inline-block;
+    width: 2px; height: 1em;
+    background: var(--accent-light);
+    vertical-align: -0.15em;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .status .meta { font-variant-numeric: tabular-nums; }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 12px;
+  }
+  .error {
+    background: #f8e8e0;
+    border: 1px solid #e5c4b3;
+    color: var(--err);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 14px;
+    margin-top: 16px;
+    word-break: break-all;
+  }
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: #b3a992;
+    padding: 8px 0 32px;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>散文日记</h1>
+  <p class="sub">把随手写的随笔，梳理成温润的散文</p>
+  <div class="rule"></div>
+</header>
+
+<main>
+  <section class="card">
+    <div class="row">
+      <label for="input">随笔原文</label>
+      <span class="meta" id="count">0 字</span>
+    </div>
+    <textarea id="input" placeholder="把妙笔里写的随笔粘贴到这里&#10;语音转的文字、想到哪写到哪都没关系"></textarea>
+    <div class="passcode-row" id="passcodeRow" hidden>
+      <label for="passcode">访问码</label>
+      <input id="passcode" type="password" autocomplete="off" placeholder="问我要呀">
+    </div>
+    <div class="actions">
+      <button class="primary" id="polish">✨ 梳理成散文</button>
+      <button class="ghost" id="clear">清空</button>
+    </div>
+  </section>
+
+  <p class="error" id="error" hidden></p>
+
+  <section class="card status" id="resultCard" hidden>
+    <div class="row">
+      <label>散文</label>
+      <span class="meta" id="status"></span>
+    </div>
+    <div class="title-line" id="titleLine" hidden>
+      <span class="t" id="suggestedTitle"></span>
+      <button class="mini" id="copyTitle">复制标题</button>
+    </div>
+    <article id="output"></article>
+    <div class="actions">
+      <button class="primary" id="copy">复制全文</button>
+    </div>
+    <p class="hint">复制后打开妙笔 App，新建文档粘贴进去就好</p>
+  </section>
+</main>
+
+<footer>随笔只用于生成这篇散文 · GLM 梳理</footer>
+
+<script>
+(function () {
+  'use strict'
+
+  var $ = function (id) { return document.getElementById(id) }
+  var input = $('input'), count = $('count'), polishBtn = $('polish'), clearBtn = $('clear')
+  var errorBox = $('error'), resultCard = $('resultCard'), output = $('output')
+  var statusEl = $('status'), titleLine = $('titleLine'), suggestedTitle = $('suggestedTitle')
+  var passcodeRow = $('passcodeRow'), passcodeInput = $('passcode')
+
+  var raw = ''          // 当前散文的 Markdown 原文（复制用）
+  var running = false
+  var nearBottom = true // 用户没有主动往上翻时，跟随输出自动滚动
+
+  // ---------- localStorage ----------
+  function load(k) { try { return localStorage.getItem(k) } catch (e) { return null } }
+  function save(k, v) { try { localStorage.setItem(k, v) } catch (e) {} }
+  function del(k) { try { localStorage.removeItem(k) } catch (e) {} }
+
+  // ---------- 渲染 ----------
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  }
+
+  // 把 Markdown 正文渲染成段落（只处理散文需要的最小集合：段落 / 加粗 / 图片行）
+  function renderMarkdown(text, streaming) {
+    var html = ''
+    var paras = text.split(/\n{2,}/)
+    for (var i = 0; i < paras.length; i++) {
+      var p = paras[i].trim()
+      if (!p) continue
+      if (/^!\[[^\]]*\]\([^)]*\)$/.test(p)) {
+        // 妙笔图片引用：页面上做个标记，复制原文时仍然保留
+        html += '<p><span class="img-ref">🖼 图片</span></p>'
+      } else {
+        var line = escapeHtml(p).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        html += '<p>' + line + (streaming && i === paras.length - 1 ? '<span class="caret"></span>' : '') + '</p>'
+      }
+    }
+    return html || (streaming ? '<p><span class="caret"></span></p>' : '')
+  }
+
+  function updateCount() {
+    var n = input.value.length
+    count.textContent = n + ' 字'
+  }
+
+  function showError(msg) {
+    errorBox.textContent = msg
+    errorBox.hidden = false
+  }
+  function clearError() { errorBox.hidden = true }
+
+  function autoScroll() {
+    if (nearBottom) window.scrollTo(0, document.body.scrollHeight)
+  }
+  window.addEventListener('scroll', function () {
+    nearBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 150
+  })
+
+  // ---------- 复制（微信浏览器兼容） ----------
+  function copyText(text, done) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true) }, function () { fallbackCopy(text, done) })
+    } else {
+      fallbackCopy(text, done)
+    }
+  }
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.cssText = 'position:fixed;left:-9999px;top:0'
+    document.body.appendChild(ta)
+    ta.focus(); ta.select()
+    var ok = false
+    try { ok = document.execCommand('copy') } catch (e) {}
+    document.body.removeChild(ta)
+    done(ok)
+  }
+  function flash(btn, okText, failText) {
+    var old = btn.textContent
+    btn.textContent = okText
+    setTimeout(function () { btn.textContent = old }, 1600)
+    if (failText) { /* 复制失败时保留提示 */ }
+    return old
+  }
+
+  // ---------- 生成 ----------
+  function suggestedTitleText() {
+    var d = new Date()
+    return '散文 · ' + (d.getMonth() + 1) + '月' + d.getDate() + '日'
+  }
+
+  function setStatus(text) { statusEl.textContent = text }
+
+  async function polish() {
+    if (running) return
+    var text = input.value.trim()
+    if (!text) { showError('先粘贴一段随笔吧'); return }
+
+    clearError()
+    running = true
+    polishBtn.disabled = true
+    polishBtn.textContent = '正在梳理…'
+    raw = ''
+    resultCard.hidden = false
+    titleLine.hidden = true
+    output.innerHTML = renderMarkdown('', true)
+    setStatus('写下第一个字…')
+    nearBottom = true
+    autoScroll()
+
+    try {
+      var resp = await fetch('/api/polish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text, passcode: passcodeInput.value || '' })
+      })
+
+      if (!resp.ok) {
+        var emsg = '生成失败（' + resp.status + '）'
+        try {
+          var ej = await resp.json()
+          if (ej && ej.error) emsg = ej.error
+        } catch (e) {}
+        showError(emsg)
+        if (!raw) resultCard.hidden = true
+        return
+      }
+
+      // 逐段读取 SSE 流：data: {"choices":[{"delta":{"content":"…"}}]}
+      var reader = resp.body.getReader()
+      var decoder = new TextDecoder()
+      var buf = ''
+      while (true) {
+        var chunk = await reader.read()
+        if (chunk.done) break
+        buf += decoder.decode(chunk.value, { stream: true })
+        var lines = buf.split('\n')
+        buf = lines.pop() // 最后一段可能不完整，留给下一轮
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim()
+          if (line.slice(0, 5) !== 'data:') continue
+          var payload = line.slice(5).trim()
+          if (!payload || payload === '[DONE]') continue
+          try {
+            var j = JSON.parse(payload)
+            var deltaObj = (j.choices && j.choices[0] && j.choices[0].delta) || {}
+            // GLM 会先输出一段构思流（reasoning_content），此时正文还没开始
+            if (deltaObj.reasoning_content && !raw) setStatus('正在构思…')
+            if (deltaObj.content) {
+              raw += deltaObj.content
+              output.innerHTML = renderMarkdown(raw, true)
+              setStatus(raw.length + ' 字')
+              autoScroll()
+            }
+          } catch (e) { /* 半截 JSON，忽略 */ }
+        }
+      }
+
+      if (!raw) {
+        showError('这次没有生成内容，请重试一次')
+        resultCard.hidden = true
+        return
+      }
+
+      output.innerHTML = renderMarkdown(raw, false)
+      var title = suggestedTitleText()
+      suggestedTitle.textContent = title
+      titleLine.hidden = false
+      setStatus('完成 · ' + raw.length + ' 字')
+      save('lastResult', raw)
+      save('lastTitle', title)
+      save('lastTime', String(Date.now()))
+    } catch (err) {
+      showError('网络出了点问题，请重试：' + (err && err.message ? err.message : err))
+    } finally {
+      running = false
+      polishBtn.disabled = false
+      polishBtn.textContent = '✨ 梳理成散文'
+    }
+  }
+
+  // ---------- 事件 ----------
+  var saveTimer = null
+  input.addEventListener('input', function () {
+    updateCount()
+    clearTimeout(saveTimer)
+    saveTimer = setTimeout(function () { save('draft', input.value) }, 400)
+  })
+  polishBtn.addEventListener('click', polish)
+  passcodeInput.addEventListener('change', function () { save('passcode', passcodeInput.value) })
+
+  clearBtn.addEventListener('click', function () {
+    if (!confirm('确定清空随笔和这次的结果吗？')) return
+    input.value = ''
+    raw = ''
+    updateCount()
+    resultCard.hidden = true
+    del('draft'); del('lastResult'); del('lastTitle'); del('lastTime')
+    clearError()
+  })
+
+  $('copy').addEventListener('click', function () {
+    var btn = $('copy')
+    copyText(raw, function (ok) {
+      btn.textContent = ok ? '已复制 ✓' : '复制失败，请长按正文手动复制'
+      setTimeout(function () { btn.textContent = '复制全文' }, 2000)
+    })
+  })
+  $('copyTitle').addEventListener('click', function () {
+    copyText(suggestedTitle.textContent, function (ok) {
+      var btn = $('copyTitle')
+      btn.textContent = ok ? '已复制 ✓' : '失败'
+      setTimeout(function () { btn.textContent = '复制标题' }, 1600)
+    })
+  })
+
+  // ---------- 初始化 ----------
+  input.value = load('draft') || ''
+  updateCount()
+
+  fetch('/api/config').then(function (r) { return r.json() }).then(function (cfg) {
+    if (cfg && cfg.needsPasscode) {
+      passcodeRow.hidden = false
+      passcodeInput.value = load('passcode') || ''
+    }
+  }).catch(function () {})
+
+  // 上次生成的结果还在的话，恢复显示（手机上误刷新也不怕）
+  var saved = load('lastResult')
+  if (saved) {
+    raw = saved
+    resultCard.hidden = false
+    output.innerHTML = renderMarkdown(raw, false)
+    var t = load('lastTitle')
+    if (t) { suggestedTitle.textContent = t; titleLine.hidden = false }
+    var ts = load('lastTime')
+    if (ts) {
+      var d = new Date(Number(ts))
+      setStatus('上次生成 · ' + (d.getMonth() + 1) + '月' + d.getDate() + '日 ' +
+        ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2))
+    }
+  }
+})()
+</script>
+</body>
+</html>

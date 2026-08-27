@@ -4,3 +4,8 @@ config.json
 # Python
 __pycache__/
 *.pyc
+
+# Web 版（Cloudflare Workers）本地产物
+web/node_modules/
+web/.wrangler/
+web/.dev.vars

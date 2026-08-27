@@ -1,0 +1,13 @@
+name = "wonderpen-prose"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# 密钥不写在这个文件里，用命令设置（只存在 Cloudflare 服务端）：
+#   echo -n "你的智谱Key" | npx wrangler secret put GLM_API_KEY
+#   echo -n "访问码"       | npx wrangler secret put PASSCODE
+# 可选：echo -n "glm-5.3" | npx wrangler secret put GLM_MODEL

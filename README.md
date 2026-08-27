@@ -2,6 +2,11 @@
 
 把「妙笔（WonderPen）」里随手写的随笔，用 AI 梳理成散文日记质感的小工具。
 
+两种形态：
+
+- **桌面版**（`app.py`）：直接读写电脑上的妙笔，一键梳理、一键写回
+- **Web 版**（`web/`，[wonderpen-prose.zbw230.workers.dev](https://wonderpen-prose.zbw230.workers.dev)）：手机浏览器/微信里粘贴随笔 → 生成散文 → 一键复制，粘进妙笔 App
+
 ## 效果
 
 在妙笔里写下的随笔（常常是语音输入、想到哪写到哪），经过本工具：
@@ -20,16 +25,33 @@
 4. 左侧选一篇或多篇随笔 → 点「✨ AI 梳理成散文」
 5. 在右侧预览、修改 → 点「写回妙笔」
 
+## Web 版（手机可用）
+
+地址：**https://wonderpen-prose.zbw230.workers.dev** （需要访问码，找我拿）
+
+用法：手机上打开网址 → 粘贴随笔（从妙笔 App 里复制出来，或在别处随手写的）→ 点「✨ 梳理成散文」→ 边生成边显示 → 「复制全文」→ 到妙笔 App 新建文档粘贴。标题也帮你起好了，点「复制标题」即可。
+
+说明：
+
+- 妙笔的 API 只在电脑本机开放，手机网页**无法自动写回妙笔**，所以是「复制 → 手动粘贴」模式
+- 智谱 API Key 只存在 Cloudflare 服务端（Secret），不出现在网页代码里；网址设了访问码，防止额度被人盗刷
+- 改访问码：`cd web && echo -n "新码" | npx wrangler secret put PASSCODE`
+- 改用别的模型：`echo -n "glm-5.3" | npx wrangler secret put GLM_MODEL`
+- 散文风格与桌面版完全一致（同一个提示词）
+
 ## 文件说明
 
 | 文件 | 作用 |
 | --- | --- |
-| `app.py` | 图形界面（tkinter） |
+| `app.py` | 桌面版图形界面（tkinter） |
 | `wp_client.py` | 妙笔本地 API（MCP）客户端 |
 | `glm_client.py` | 智谱 GLM API 客户端 |
 | `polisher.py` | 散文梳理的提示词与编排 |
-| `config.json` | 配置：端口 / Token / API Key / 模型（**含密钥，不入库**） |
+| `config.json` | 桌面版配置（**含密钥，不入库**） |
 | `config.example.json` | 配置模板：克隆后复制为 `config.json` 再填写 |
+| `web/worker.js` | Web 版 Worker：静态页 + `/api/polish` 流式代理 GLM |
+| `web/public/index.html` | Web 版页面（手机优先，米色纸感） |
+| `web/wrangler.toml` | Cloudflare Workers 部署配置（密钥用 Secret，不入库） |
 
 依赖：仅 Python 标准库（3.10+），无需安装任何第三方包。
 
@@ -37,5 +59,12 @@
 
 - **连不上妙笔**：确认妙笔已打开、API 已开启、端口和 Token 与设置一致
 - **图片丢失**：工具会原样保留 `wonderpen://assets/...` 图片引用，AI 也被要求不改动它们
-- **想换风格**：`polisher.py` 里的 `SYSTEM_PROMPT` 就是文风规则，可直接改
+- **想换风格**：`polisher.py` 里的 `SYSTEM_PROMPT` 就是文风规则，可直接改（Web 版在 `web/worker.js` 里，两处保持一致）
 - **模型**：默认 `glm-5.2`，可在设置里换成 `glm-5.3`（更强）或 `glm-5-turbo`（更快）
+
+## 更新日志
+
+| 日期 | 内容 |
+| --- | --- |
+| 2026-08-27 | v1.1：新增 Web 版（Cloudflare Workers，手机可用，流式生成 + 一键复制）；配置每次对话后自动同步 GitHub |
+| 2026-08-26 | v1.0：桌面版——妙笔文档树选择、AI 梳理成散文、写回妙笔 |
