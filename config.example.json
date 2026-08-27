@@ -1,0 +1,6 @@
+{
+  "wonderpen_port": 8022,
+  "wonderpen_token": "wp-你的妙笔Token（妙笔 设置 → 高级 → API）",
+  "glm_api_key": "你的智谱API Key（open.bigmodel.cn 申请）",
+  "glm_model": "glm-5.2"
+}

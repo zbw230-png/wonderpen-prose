@@ -1,0 +1,6 @@
+# 密钥配置，绝不入库（含智谱 API Key 与妙笔 Token）
+config.json
+
+# Python
+__pycache__/
+*.pyc
