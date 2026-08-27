@@ -210,7 +210,7 @@ class App:
             raise WonderPenError("这篇文章是空的，没有可批注的内容。")
 
         self.queue.put(
-            ("status", f"共 {len(paras)} 段，GLM 正在逐段批注（{annotator.MODE_LABELS[mode]}），稍等……")
+            ("status", f"共 {len(paras)} 段，GLM 正在逐段批注（{annotator.MODE_NAMES[mode]}），稍等……")
         )
         raw = self._make_glm().chat_messages(
             [
@@ -231,7 +231,7 @@ class App:
                     "html": html,
                     "preview": preview,
                     "count": n,
-                    "mode": annotator.MODE_LABELS[mode],
+                    "mode": annotator.MODE_NAMES[mode],
                 },
             )
         )

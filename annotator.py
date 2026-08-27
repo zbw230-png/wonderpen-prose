@@ -47,6 +47,7 @@ MODE_PROMPTS = {
     "interpret": INTERPRET_PROMPT,
     "literary": LITERARY_PROMPT,
 }
+MODE_NAMES = {mode: label for mode, label in zip(MODE_PROMPTS, MODE_LABELS)}  # "interpret" → "解读批注"
 LABEL_TO_MODE = {label: mode for mode, label in zip(MODE_PROMPTS, MODE_LABELS)}
 
 
