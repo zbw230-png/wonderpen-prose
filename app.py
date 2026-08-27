@@ -295,6 +295,25 @@ class App:
         self._load_tree_data()
         self.queue.put(("written", title))
 
+    def _task_append_back(self, doc_id, content, kind):
+        """把内容写进原文档末尾：分隔线隔开，线下是 AI 内容。
+
+        批注走 HTML（Markdown 会把 <u> 下划线转义掉），梳理走 Markdown。
+        写入前重新读一遍原文，尽量拿到最新内容。
+        """
+        node = self.items_by_id.get(doc_id) or {}
+        title = node.get("rendered_title") or node.get("title", "")
+        self.queue.put(("status", f"正在写进《{title}》……"))
+        if kind == "annotate":
+            old = self.wp.get_item(doc_id, self.lib_key, fmt="html").get("content", "")
+            new = old.rstrip() + "\n<hr>\n" + content
+            self.wp.update_item(doc_id, new, fmt="html", lib_key=self.lib_key)
+        else:
+            old = self.wp.get_item(doc_id, self.lib_key, fmt="markdown").get("content", "")
+            new = old.rstrip() + "\n\n---\n\n" + content
+            self.wp.update_item(doc_id, new, fmt="markdown", lib_key=self.lib_key)
+        self.queue.put(("appended", {"title": title, "kind": kind}))
+
     # ------------------------------------------------------------------ 事件
 
     def _on_refresh(self):
@@ -370,29 +389,82 @@ class App:
         self._run_worker(lambda: self._task_open_chat(meta))
 
     def _on_write_back(self):
-        title = self.title_var.get().strip()
-        if not title:
-            self._set_status("标题不能为空。", "red")
-            return
         if not self.last_source_ids:
             self._set_status("找不到源文档位置，请重新生成后再写回。", "red")
             return
 
         if self.preview_kind == "annotate":
-            content, fmt = self.pending_html, "html"
-            question = f"在妙笔中新建批注文档「{title}」？\n（原文档不会被修改）"
+            content = self.pending_html
         else:
             content = self.preview.get("1.0", "end").strip()
-            fmt = "markdown"
-            question = f"在妙笔中新建文档「{title}」？\n（原文档不会被修改）"
-
         if not content:
             self._set_status("没有可写回的内容。", "red")
             return
-        if not messagebox.askyesno("写回妙笔", question):
+
+        can_append = len(set(self.last_source_ids)) == 1  # 多篇合写没有唯一「原文」
+        mode = self._ask_write_back_mode(self.title_var.get().strip() or "未命名", can_append)
+        if mode is None:
             return
+
         self.write_btn.configure(state="disabled")
-        self._run_worker(lambda: self._task_write_back(title, content, self.last_source_ids[-1], fmt))
+        if mode == "append":
+            self._run_worker(
+                lambda: self._task_append_back(
+                    self.last_source_ids[0], content, self.preview_kind
+                )
+            )
+            return
+
+        title = self.title_var.get().strip()
+        if not title:
+            self.write_btn.configure(state="normal")
+            self._set_status("新建文档需要先填标题。", "red")
+            return
+        fmt = "html" if self.preview_kind == "annotate" else "markdown"
+        self._run_worker(
+            lambda: self._task_write_back(title, content, self.last_source_ids[-1], fmt)
+        )
+
+    def _ask_write_back_mode(self, title: str, can_append: bool) -> str | None:
+        """弹窗选写回方式：new=新建文档 / append=写进原文末尾，取消返回 None。"""
+        win = tk.Toplevel(self.root)
+        win.title("写回妙笔")
+        win.resizable(False, False)
+        frame = ttk.Frame(win, padding=18)
+        frame.pack()
+        result = {"v": None}
+
+        def close(v):
+            result["v"] = v
+            win.destroy()
+
+        win.protocol("WM_DELETE_WINDOW", lambda: close(None))
+
+        ttk.Label(frame, text="写到哪里？", font=(TEXT_FONT[0], TEXT_FONT[1], "bold")).grid(
+            row=0, column=0, columnspan=2, sticky="w", pady=(0, 10)
+        )
+        choice = tk.StringVar(value="new")
+        ttk.Radiobutton(
+            frame, text=f"新建文档「{title}」——插在原文后面，原文不动", value="new", variable=choice
+        ).grid(row=1, column=0, columnspan=2, sticky="w", pady=2)
+        rb_append = ttk.Radiobutton(
+            frame, text="写进原文末尾——用分隔线隔开，线下面接着写", value="append", variable=choice
+        )
+        rb_append.grid(row=2, column=0, columnspan=2, sticky="w", pady=2)
+        if not can_append:
+            rb_append.state(["disabled"])
+            ttk.Label(frame, text="（本次由多篇合写，只能新建文档）", foreground="gray").grid(
+                row=3, column=0, columnspan=2, sticky="w", padx=(22, 0)
+            )
+
+        btns = ttk.Frame(frame)
+        btns.grid(row=4, column=0, columnspan=2, pady=(14, 0))
+        ttk.Button(btns, text="取消", command=lambda: close(None)).pack(side="left", padx=4)
+        ttk.Button(btns, text="确定", command=lambda: close(choice.get())).pack(side="left", padx=4)
+
+        win.grab_set()
+        self.root.wait_window(win)
+        return result["v"]
 
     def _set_buttons_busy(self, busy: bool):
         state = "disabled" if busy else "normal"
@@ -549,6 +621,17 @@ class App:
             )
         else:
             self._set_status(f"已写入妙笔：《{title}》。可以继续选下一篇随笔。", "#2e9e44")
+
+    def _on_q_appended(self, payload):
+        self.write_btn.configure(state="normal")
+        if payload["kind"] == "annotate":
+            self._set_status(
+                f"已写进《{payload['title']}》：分隔线下方是 AI 内容，批注带下划线。", "#2e9e44"
+            )
+        else:
+            self._set_status(
+                f"已写进《{payload['title']}》：分隔线下方是 AI 内容。", "#2e9e44"
+            )
 
 
 class ChatWindow(tk.Toplevel):
